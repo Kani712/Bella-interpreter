@@ -2,26 +2,71 @@ function interpret(program) {
     return P(program);
 }
 
-function P() {}
+const P = (program) => {
+    let statements = program.body;
+    let w = [{},
+        []
+    ];
+    for (let s of statements) {
+        w = S(s)(w);
+    }
+    return w[1];
+};
 
-function S() {}
+const S = (statement) => ([memory, output]) => {
+    if (statement.constructor === VariableDeclaration) {
+        let { variable, initializer } = statement;
+        return [{...memory, [variable]: E(initializer)(memory) }, output];
+    } else if (statement.constructor === PrintStatement) {
+        let { argument } = statement;
+        return [memory, [...output, E(argument)(memory)]];
+    } else if (statement.constructor === Assignment) {
+        const { target, source } = statement;
+        return [{...memory, [target]: E(source)([memory, output]) }, output];
+    } else if (statement.constructor === WhileStatement) {
+        const { test, body } = statement;
+        let state = [{...memory },
+            [...ouput]
+        ];
+        if (C(test)(memory, output)) {
+            body.forEach((stmt) => {
+                state = S(stmt)(state);
+            });
+        }
+        return [memory, output];
+    } else if (statement.constructor === FunctionDeclaration) {
+        const { name, parameters, body } = statement;
+        return [{...memory, [name]: { parameters, body } }, output];
+    }
+};
+
 const E = (expression) => (memory) => {
     if (typeof expression === "number") {
         return expression;
     } else if (typeof expression == "string") {
         const i = expression;
-        return memory(i); // WAIT THIS MIGHT NOT BE RIGHT
+        return memory[i];
     } else if (expression.constructor === Unary) {
         return -E(expression)(memory);
     } else if (expression.constructor === Binary) {
-        const { op, left, right } = condition;
+        const { op, left, right } = expression;
         switch (op) {
             case "+":
                 return E(left)(memory) + E(right)(memory);
-                // Lots more to do
+            case "-":
+                return E(left)(memory) - E(right)(memory);
+            case "*":
+                return E(left)(memory) * E(right)(memory);
+            case "/":
+                return E(left)(memory) / E(right)(memory);
+            case "%":
+                return E(left)(memory) % E(right)(memory);
+            case "**":
+                return E(left)(memory) ** E(right)(memory);
         }
     }
 };
+
 const C = (condition) => (memory) => {
     if (condition === true) {
         return true;
@@ -51,6 +96,9 @@ const C = (condition) => (memory) => {
         const { op, operand } = condition;
         return !C(operand)(memory);
     }
+    // FOR YOU: HANDLE CALLS
+
+    // FOR YOU: HANDLE CONDITIONAL EXPRESSION (?:)
 };
 
 class Program {
@@ -62,6 +110,12 @@ class Program {
 class VariableDeclaration {
     constructor(variable, initializer) {
         Object.assign(this, { variable, initializer });
+    }
+}
+
+class FunctionDeclaration {
+    constructor(name, parameters, body) {
+        Object.assign(this, { name, parameters, body });
     }
 }
 
@@ -99,6 +153,8 @@ const program = (s) => new Program(s);
 const vardec = (i, e) => new VariableDeclaration(i, e);
 const print = (e) => new PrintStatement(e);
 const whileLoop = (c, b) => new WhileStatement(c, b);
+const fundec = (n, p, b) => new FunctionDeclaration(n, p, b);
+const assign = (t, s) => new Assignment(t, s);
 const plus = (x, y) => new Binary("+", x, y);
 const minus = (x, y) => new Binary("-", x, y);
 const times = (x, y) => new Binary("*", x, y);
@@ -113,13 +169,24 @@ const greatereq = (x, y) => new Binary(">=", x, y);
 const and = (x, y) => new Binary("&&", x, y);
 const or = (x, y) => new Binary("||", x, y);
 
-//console.log(interpret(program([vardec("x", 2), print("x")])));
-/*
-console.log(
-    program([
-        vardec("x", 3),
-        whileLoop(less("x", 10), [print("x"), assign("x", plus("x", 2))]),
-    ])
-);*/
+// console.log(interpret(program([vardec("x", 2), print("x")])))
 
-console.log(C(false)({}));
+// console.log(
+//   program([
+//     vardec("x", 3),
+//     whileLoop(less("x", 10), [print("x"), assign("x", plus("x", 2))]),
+//   ])
+// )
+
+console.log(
+    P(
+        program([
+            fundec("sub", ["x", "y"], minus("x", "y")),
+            assign("x", 15),
+            //vardec("x", 3),
+            //vardec("y", plus("x", 10)),
+            print("x"),
+            //print("y"),
+        ])
+    )
+);
