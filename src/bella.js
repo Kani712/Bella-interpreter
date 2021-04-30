@@ -26,9 +26,9 @@ const S = (statement) => ([memory, output]) => {
     } else if (statement.constructor === WhileStatement) {
         const { test, body } = statement;
         let state = [{...memory },
-            [...ouput]
+            [...output]
         ];
-        if (C(test)(memory, output)) {
+        if (C(test)([memory, output])) {
             body.forEach((stmt) => {
                 state = S(stmt)(state);
             });
@@ -171,12 +171,15 @@ const or = (x, y) => new Binary("||", x, y);
 
 // console.log(interpret(program([vardec("x", 2), print("x")])))
 
-// console.log(
-//   program([
-//     vardec("x", 3),
-//     whileLoop(less("x", 10), [print("x"), assign("x", plus("x", 2))]),
-//   ])
-// )
+console.log(
+    interpret(
+        program([
+            vardec("x", 3),
+            whileLoop(less("x", 10), [print("x"), assign("x", plus("x", 2))]),
+        ])
+    )
+);
+
 
 console.log(
     P(
@@ -185,7 +188,7 @@ console.log(
             assign("x", 15),
             //vardec("x", 3),
             //vardec("y", plus("x", 10)),
-            print("x"),
+            //print("x"),
             //print("y"),
         ])
     )
