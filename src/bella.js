@@ -16,10 +16,10 @@ const P = (program) => {
 const S = (statement) => ([memory, output]) => {
     if (statement.constructor === VariableDeclaration) {
         let { variable, initializer } = statement;
-        return [{...memory, [variable]: E(initializer)(memory) }, output];
+        return [{...memory, [variable]: E(initializer)([memory, output]) }, output, ];
     } else if (statement.constructor === PrintStatement) {
         let { argument } = statement;
-        return [memory, [...output, E(argument)(memory)]];
+        return [memory, [...output, E(argument)([memory, output])]];
     } else if (statement.constructor === Assignment) {
         const { target, source } = statement;
         return [{...memory, [target]: E(source)([memory, output]) }, output];
@@ -29,9 +29,10 @@ const S = (statement) => ([memory, output]) => {
             [...output]
         ];
         if (C(test)([memory, output])) {
-            body.forEach((stmt) => {
-                state = S(stmt)(state);
+            body.forEach((statement) => {
+                state = S(statement)(state);
             });
+            return S(statement)(state);
         }
         return [memory, output];
     } else if (statement.constructor === FunctionDeclaration) {
@@ -39,13 +40,14 @@ const S = (statement) => ([memory, output]) => {
         return [{...memory, [name]: { parameters, body } }, output];
     }
 };
-
 const E = (expression) => (memory) => {
     if (typeof expression === "number") {
         return expression;
     } else if (typeof expression == "string") {
         const i = expression;
-        return memory[i];
+        return memory[0][i];
+    } else if (typeof expression === "boolean") {
+        return expression;
     } else if (expression.constructor === Unary) {
         return -E(expression)(memory);
     } else if (expression.constructor === Binary) {
@@ -64,6 +66,9 @@ const E = (expression) => (memory) => {
             case "**":
                 return E(left)(memory) ** E(right)(memory);
         }
+    } else if (expression.constructor === Ternary) {
+        const { check, result, alternate } = expression;
+        return C(check)(memory) ? E(result)(memory) : E(alternate)(memory);
     }
 };
 
@@ -96,9 +101,7 @@ const C = (condition) => (memory) => {
         const { op, operand } = condition;
         return !C(operand)(memory);
     }
-    // FOR YOU: HANDLE CALLS
 
-    // FOR YOU: HANDLE CONDITIONAL EXPRESSION (?:)
 };
 
 class Program {
@@ -149,12 +152,23 @@ class Unary {
     }
 }
 
+class Call {
+    constructor(id, args) {
+        Object.assign(this, { id, args });
+    }
+}
+
+class Ternary {
+    constructor(check, result, alternate) {
+        Object.assign(this, { check, result, alternate });
+    }
+}
+
 const program = (s) => new Program(s);
 const vardec = (i, e) => new VariableDeclaration(i, e);
+const assign = (t, s) => new Assignment(t, s);
 const print = (e) => new PrintStatement(e);
 const whileLoop = (c, b) => new WhileStatement(c, b);
-const fundec = (n, p, b) => new FunctionDeclaration(n, p, b);
-const assign = (t, s) => new Assignment(t, s);
 const plus = (x, y) => new Binary("+", x, y);
 const minus = (x, y) => new Binary("-", x, y);
 const times = (x, y) => new Binary("*", x, y);
@@ -168,8 +182,10 @@ const greater = (x, y) => new Binary(">", x, y);
 const greatereq = (x, y) => new Binary(">=", x, y);
 const and = (x, y) => new Binary("&&", x, y);
 const or = (x, y) => new Binary("||", x, y);
+const call = (i, a) => new Call(i, a);
+const ternary = (c, r, a) => new Ternary(c, r, a);
 
-// console.log(interpret(program([vardec("x", 2), print("x")])))
+console.log(interpret(program([vardec("x", 2), print("x")])))
 
 console.log(
     interpret(
@@ -177,19 +193,17 @@ console.log(
             vardec("x", 3),
             whileLoop(less("x", 10), [print("x"), assign("x", plus("x", 2))]),
         ])
-    )
-);
-
+    ));
 
 console.log(
     P(
         program([
-            fundec("sub", ["x", "y"], minus("x", "y")),
-            assign("x", 15),
-            //vardec("x", 3),
-            //vardec("y", plus("x", 10)),
-            //print("x"),
-            //print("y"),
+            vardec("x", 3),
+            vardec("y", plus("x", 10)),
+            assign("x", 20),
+            print(ternary(eq(2, 2), true, false)),
+            print("x"),
+            print("y"),
         ])
     )
 );
