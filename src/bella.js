@@ -201,7 +201,8 @@ console.log(
             vardec("x", 3),
             vardec("y", plus("x", 10)),
             assign("x", 20),
-            print(ternary(eq(2, 2), true, false)),
+            print(remainder('x', 'y')),
+            print(ternary(greater(10, 2), true, false)),
             print("x"),
             print("y"),
         ])
