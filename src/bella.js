@@ -69,6 +69,13 @@ const E = (expression) => (memory) => {
     } else if (expression.constructor === Ternary) {
         const { check, result, alternate } = expression;
         return C(check)(memory) ? E(result)(memory) : E(alternate)(memory);
+    } else if (expression.constructor === Call) {
+        const { id, args } = expression;
+        let param = memory[0][id].parameters;
+        for (let i = 0; i < args.length; i++) {
+            memory[0][param[i]] = args[i];
+        }
+        return E(memory[0][id].body)(memory);
     }
 };
 
@@ -167,6 +174,7 @@ class Ternary {
 const program = (s) => new Program(s);
 const vardec = (i, e) => new VariableDeclaration(i, e);
 const assign = (t, s) => new Assignment(t, s);
+const fundec = (n, p, b) => new FunctionDeclaration(n, p, b);
 const print = (e) => new PrintStatement(e);
 const whileLoop = (c, b) => new WhileStatement(c, b);
 const plus = (x, y) => new Binary("+", x, y);
@@ -196,13 +204,15 @@ console.log(
     ));
 
 console.log(
-    P(
+    interpret(
         program([
+            fundec("multiply", ["a", "b"], times("a", "b")),
             vardec("x", 3),
             vardec("y", plus("x", 10)),
             assign("x", 20),
             print(remainder('x', 'y')),
             print(ternary(greater(10, 2), true, false)),
+            print(call("multiply", [10, 5])),
             print("x"),
             print("y"),
         ])
