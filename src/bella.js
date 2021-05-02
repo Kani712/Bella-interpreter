@@ -16,7 +16,10 @@ const P = (program) => {
 const S = (statement) => ([memory, output]) => {
     if (statement.constructor === VariableDeclaration) {
         let { variable, initializer } = statement;
-        return [{...memory, [variable]: E(initializer)([memory, output]) }, output, ];
+        return [
+            {...memory, [variable]: E(initializer)([memory, output]) },
+            output,
+        ];
     } else if (statement.constructor === PrintStatement) {
         let { argument } = statement;
         return [memory, [...output, E(argument)([memory, output])]];
@@ -40,6 +43,7 @@ const S = (statement) => ([memory, output]) => {
         return [{...memory, [name]: { parameters, body } }, output];
     }
 };
+
 const E = (expression) => (memory) => {
     if (typeof expression === "number") {
         return expression;
@@ -108,7 +112,6 @@ const C = (condition) => (memory) => {
         const { op, operand } = condition;
         return !C(operand)(memory);
     }
-
 };
 
 class Program {
@@ -193,7 +196,7 @@ const or = (x, y) => new Binary("||", x, y);
 const call = (i, a) => new Call(i, a);
 const ternary = (c, r, a) => new Ternary(c, r, a);
 
-console.log(interpret(program([vardec("x", 2), print("x")])))
+console.log(interpret(program([vardec("x", 2), print("x")])));
 
 console.log(
     interpret(
@@ -201,7 +204,8 @@ console.log(
             vardec("x", 3),
             whileLoop(less("x", 10), [print("x"), assign("x", plus("x", 2))]),
         ])
-    ));
+    )
+);
 
 console.log(
     interpret(
@@ -210,7 +214,8 @@ console.log(
             vardec("x", 3),
             vardec("y", plus("x", 10)),
             assign("x", 20),
-            print(remainder('x', 'y')),
+            print(remainder("x", "y")),
+            print(power("x", 2)),
             print(ternary(greater(10, 2), true, false)),
             print(call("multiply", [10, 5])),
             print("x"),
