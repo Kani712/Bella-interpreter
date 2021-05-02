@@ -1,19 +1,21 @@
 {
-  "name": "bella-interpreter",
-  "version": "1.0.0",
-  "description": "Bella is a prohramming language designed in a Programming language Semantics Class.",
-  "main": "bella.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Kani712/Bella-interpreter.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Kani712/Bella-interpreter/issues"
-  },
-  "homepage": "https://github.com/Kani712/Bella-interpreter#readme"
+    "name": "bella-interpreter",
+    "version": "1.0.0",
+    "description": "Bella is a prohramming language designed in a Programming language Semantics Class.",
+    "main": "bella.js",
+    "type": "module",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Kani712/Bella-interpreter.git"
+    },
+    "keywords": [],
+    "author": "Kani",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/Kani712/Bella-interpreter/issues"
+    },
+    "homepage": "https://github.com/Kani712/Bella-interpreter#readme"
 }
