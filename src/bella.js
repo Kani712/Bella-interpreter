@@ -47,7 +47,7 @@ const S = (statement) => ([memory, output]) => {
 const E = (expression) => (memory) => {
     if (typeof expression === "number") {
         return expression;
-    } else if (typeof expression == "string") {
+    } else if (typeof expression === "string") {
         const i = expression;
         return memory[0][i];
     } else if (typeof expression === "boolean") {
