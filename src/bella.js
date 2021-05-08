@@ -17,27 +17,27 @@ const S = (statement) => ([memory, output]) => {
     if (statement.constructor === VariableDeclaration) {
         let { variable, initializer } = statement;
         return [
-            {...memory, [variable]: E(initializer)([memory, output]) },
+            {...memory, [variable]: E(initializer)(memory) },
             output,
         ];
     } else if (statement.constructor === PrintStatement) {
         let { argument } = statement;
-        return [memory, [...output, E(argument)([memory, output])]];
+        return [memory, [...output, E(argument)(memory)]];
     } else if (statement.constructor === Assignment) {
         const { target, source } = statement;
-        return [{...memory, [target]: E(source)([memory, output]) }, output];
+        return [{...memory, [target]: E(source)(memory) }, output];
     } else if (statement.constructor === WhileStatement) {
         const { test, body } = statement;
         let state = [{...memory },
             [...output]
         ];
-        if (C(test)([memory, output])) {
+        if (C(test)(memory)) {
             body.forEach((statement) => {
-                state = S(statement)(state);
-            });
-            return S(statement)(state);
+                state = S(statement)(state)
+            })
+            return S(statement)(state)
         }
-        return [memory, output];
+        return [memory, output]
     } else if (statement.constructor === FunctionDeclaration) {
         const { name, parameters, body } = statement;
         return [{...memory, [name]: { parameters, body } }, output];
@@ -49,7 +49,7 @@ const E = (expression) => (memory) => {
         return expression;
     } else if (typeof expression === "string") {
         const i = expression;
-        return memory[0][i];
+        return memory[i];
     } else if (typeof expression === "boolean") {
         return expression;
     } else if (expression.constructor === Unary) {
@@ -75,11 +75,11 @@ const E = (expression) => (memory) => {
         return C(check)(memory) ? E(result)(memory) : E(alternate)(memory);
     } else if (expression.constructor === Call) {
         const { id, args } = expression;
-        let param = memory[0][id].parameters;
+        let param = memory[id].parameters;
         for (let i = 0; i < args.length; i++) {
-            memory[0][param[i]] = args[i];
+            memory[param[i]] = args[i];
         }
-        return E(memory[0][id].body)(memory);
+        return E(memory[id].body)(memory);
     }
 };
 
@@ -197,7 +197,6 @@ const call = (i, a) => new Call(i, a);
 const ternary = (c, r, a) => new Ternary(c, r, a);
 
 console.log(interpret(program([vardec("x", 2), print("x")])));
-
 console.log(
     interpret(
         program([
